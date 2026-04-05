@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
+const API_BASE = import.meta.env.VITE_API_URL;
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -8,7 +10,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(() => localStorage.getItem('token'));
 
-  // Set axios default header whenever token changes
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -22,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   const fetchMe = useCallback(async () => {
     if (!token) { setLoading(false); return; }
     try {
-      const { data } = await axios.get('/api/auth/me');
+      const { data } = await axios.get(`${API_BASE}/api/auth/me`);
       if (data.success) setUser(data.user);
     } catch {
       setToken(null);
@@ -35,7 +36,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => { fetchMe(); }, [fetchMe]);
 
   const login = async (email, password) => {
-    const { data } = await axios.post('/api/auth/login', { email, password });
+    const { data } = await axios.post(`${API_BASE}/api/auth/login`, { email, password });
     if (data.success) {
       setToken(data.token);
       setUser(data.user);
@@ -44,7 +45,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (name, email, password) => {
-    const { data } = await axios.post('/api/auth/register', { name, email, password });
+    const { data } = await axios.post(`${API_BASE}/api/auth/register`, { name, email, password });
     if (data.success) {
       setToken(data.token);
       setUser(data.user);
@@ -58,7 +59,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = (updates) => setUser(prev => ({ ...prev, ...updates }));
-
   const refreshUser = fetchMe;
 
   return (
