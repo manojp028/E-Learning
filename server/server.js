@@ -14,18 +14,27 @@ const progressRoutes = require('./routes/progressRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const challengeRoutes = require('./routes/challengeRoutes');
 
-// ✅ FIX 1: Correct dotenv path
+// Load env
 dotenv.config();
 
 // Create app + server
 const app = express();
 const server = http.createServer(app);
 
-// ✅ FIX 2: Proper CORS setup (important for Vercel)
-const CLIENT_URL = process.env.CLIENT_URL || '*';
+// ✅ FIXED CORS (IMPORTANT)
+const allowedOrigins = [
+  "https://e-learning-o1mf5slcr-manojp028s-projects.vercel.app",
+  "http://localhost:5173"
+];
 
 app.use(cors({
-  origin: CLIENT_URL,
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed"));
+    }
+  },
   credentials: true
 }));
 
@@ -33,10 +42,10 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ FIX 3: Socket.io CORS fix
+// ✅ Socket.io CORS FIX
 const io = new Server(server, {
   cors: {
-    origin: CLIENT_URL,
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     credentials: true
   }
@@ -55,7 +64,7 @@ app.use('/api/progress', progressRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/challenge', challengeRoutes);
 
-// ✅ Health check (for Railway)
+// Health check
 app.get('/', (req, res) => {
   res.send('API Running 🚀');
 });
@@ -70,12 +79,11 @@ initSocket(io);
 // Error handler
 app.use(errorHandler);
 
-// ✅ FIX 4: Railway dynamic port
+// PORT (Railway compatible)
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌐 Client URL: ${CLIENT_URL}`);
 });
 
 module.exports = { app, server, io };
