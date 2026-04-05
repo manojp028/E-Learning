@@ -26,6 +26,6 @@ export const LEVEL_COLORS = {
   Advanced: 'bg-red-500/20 text-red-300',
 };
 
-export const API_BASE = '/api';
 
+export const API_BASE = import.meta.env.VITE_API_URL;
 export const SOCKET_URL = window.location.origin;
